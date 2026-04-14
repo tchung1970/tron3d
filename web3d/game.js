@@ -139,6 +139,38 @@ const boundaryGroup = new THREE.Group();
   geom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(positions), 3));
   const mat = new THREE.LineBasicMaterial({ color: COLORS.boundary, transparent: true, opacity: 0.9 });
   boundaryGroup.add(new THREE.LineSegments(geom, mat));
+
+  // Visible wall planes along each edge so players can see where they'll
+  // crash. Inward-facing cyan glow, semi-transparent so the arena beyond
+  // stays partly visible.
+  const ARENA_WALL_H = 1.6;
+  const wallMat = new THREE.MeshBasicMaterial({
+    color: COLORS.boundary, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false,
+  });
+  const span = HALF * 2;
+  const mkWall = (x, z, rotY) => {
+    const m = new THREE.Mesh(new THREE.PlaneGeometry(span, ARENA_WALL_H), wallMat);
+    m.position.set(x, ARENA_WALL_H / 2, z);
+    m.rotation.y = rotY;
+    boundaryGroup.add(m);
+  };
+  mkWall(0,  HALF, 0);
+  mkWall(0, -HALF, 0);
+  mkWall( HALF, 0, Math.PI / 2);
+  mkWall(-HALF, 0, Math.PI / 2);
+
+  // Bright bottom rail on each edge — a crisp neon strip at ground level
+  // so the boundary reads clearly even from across the arena.
+  const railPositions = [];
+  const addRail = (a, b) => railPositions.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+  addRail([-HALF, 0.05, -HALF], [ HALF, 0.05, -HALF]);
+  addRail([ HALF, 0.05, -HALF], [ HALF, 0.05,  HALF]);
+  addRail([ HALF, 0.05,  HALF], [-HALF, 0.05,  HALF]);
+  addRail([-HALF, 0.05,  HALF], [-HALF, 0.05, -HALF]);
+  const railGeom = new THREE.BufferGeometry();
+  railGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(railPositions), 3));
+  const railMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
+  boundaryGroup.add(new THREE.LineSegments(railGeom, railMat));
 }
 scene.add(boundaryGroup);
 

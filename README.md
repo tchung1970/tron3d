@@ -41,6 +41,7 @@ Steering is **relative** — `←`/`→` rotate the cycle 90° from its current 
 ## Rendering notes
 
 - Shader grid floor with minor + major cyan lines, soft vignette, `FogExp2` horizon haze.
+- Arena boundary is visualized as inward-facing translucent cyan wall planes with a bright white ground rail so the edge is unambiguous.
 - Light walls rendered as continuous ribbon segments (one stretched box per straight run, finalized at each turn) rather than per-cell instances — seamless corners, cheap draw count.
 - Cycles are classic 1982 Tron-style: solid colour bulbous shell, chunky rounded wheels with dark hubs, tinted canopy dome with a sloped windshield.
 - UnrealBloomPass + ACES tone mapping for the neon glow, tuned low-strength / high-threshold so only the brightest accents bloom.
