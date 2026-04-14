@@ -10,7 +10,7 @@ const CELL = 4;
 const HALF = (GRID * CELL) / 2;
 const WALL_H = 0.35;
 const WALL_W = CELL * 0.08;
-const MOVE_MS = 110;
+const MOVE_MS = 150;
 const WIN_SCORE = 3;
 
 const COLORS = {
@@ -585,7 +585,7 @@ function floodFill(start, blocked, limit = 600) {
 // Weakened AI: picks the best move deterministically, but with a short
 // planning horizon so it can't see long-range traps. Feels deliberate but
 // can still be outplanned by a human.
-const AI_HORIZON = 25;       // flood-fill cap; short enough to miss long traps
+const AI_HORIZON = 12;       // flood-fill cap; short enough to miss long traps
 const AI_STRAIGHT_BIAS = 4;  // small straight bias for deliberate feel
 
 function aiChoose() {
