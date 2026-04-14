@@ -817,22 +817,16 @@ function tick() {
     if (aCause === null) { aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]]; }
   }
 
-  // Head-on ram: if you crash on the opponent's trail while they're still
-  // on a collision course with you (same row or column, directions pointing
-  // at each other within the last 3 ticks OR currently within 4 cells), it
-  // counts as mutual destruction. Catches every head-on scenario — direct
-  // impact, last-tick dodge, and wide evasive turns multiple ticks earlier.
-  const RAM_RANGE = 4;
+  // Close-range ram: if you crash on the opponent's trail within 2 cells of
+  // their current head, both die. Covers direct impact and last-tick
+  // perpendicular dodges where the opponent is still right next to the
+  // impact point. Wider-range perpendicular crossings are genuine side
+  // impacts and should NOT tie.
+  const RAM_RANGE = 2;
   const chebyAi = Math.max(Math.abs(pNew[0] - state.ai.cell[0]), Math.abs(pNew[1] - state.ai.cell[1]));
   const chebyPlayer = Math.max(Math.abs(aNew[0] - state.player.cell[0]), Math.abs(aNew[1] - state.player.cell[1]));
-  const sameRow = pNew[1] === state.ai.cell[1];
-  const sameCol = pNew[0] === state.ai.cell[0];
-  const pHeadOnAxis = (sameRow || sameCol) && chebyAi <= 8;
-  const aSameRow = aNew[1] === state.player.cell[1];
-  const aSameCol = aNew[0] === state.player.cell[0];
-  const aHeadOnAxis = (aSameRow || aSameCol) && chebyPlayer <= 8;
-  const pRamsAi = pCause === 'opp' && (chebyAi <= RAM_RANGE || pHeadOnAxis);
-  const aRamsPlayer = aCause === 'opp' && (chebyPlayer <= RAM_RANGE || aHeadOnAxis);
+  const pRamsAi = pCause === 'opp' && chebyAi <= RAM_RANGE;
+  const aRamsPlayer = aCause === 'opp' && chebyPlayer <= RAM_RANGE;
   if (pRamsAi && aCause === null) {
     aCause = 'opp';
     aCrashCell = [state.ai.cell[0], state.ai.cell[1]];
