@@ -24,7 +24,6 @@ No build step, no `node_modules`.
 | --- | --- |
 | Turn left / right (relative to cycle) | `←` `→` |
 | Start round / pause / resume / next round / new match | `Space` |
-| Reset match | `Q` |
 | Quit (return to parent site) | `Esc` |
 
 Steering is **relative** — `←`/`→` rotate the cycle 90° from its current heading, matching chase-cam driving games. `↑`/`↓` are swallowed only to prevent page scroll. Touch swipes work too (horizontal swipe = left/right turn).

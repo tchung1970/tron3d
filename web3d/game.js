@@ -739,13 +739,6 @@ window.addEventListener('keydown', (e) => {
     window.location.href = '/';
     return;
   }
-  if (k === 'q') {
-    resetMatch();
-    state.phase = 'ready';
-    hideMessage();
-    stopSound();
-    return;
-  }
   // Space is the one action key: start round, pause/resume, start next round,
   // start new match after match over.
   if (k === ' ') {
