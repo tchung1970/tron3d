@@ -1011,7 +1011,15 @@ function animate(now) {
         };
         if (pC) resolveCrash(state.player);
         if (aC) resolveCrash(state.ai);
-        if (pC && aC) state.roundWinner = 'tie';
+        // Tie only when both cycles crashed into the exact same cell — a true
+        // same-cell head-on. Any other simultaneous crash gives the round to
+        // whoever didn't crash; if both crashed at different cells, the
+        // player's mistake takes priority so AI wins rather than showing a
+        // misleading TIE.
+        const sameCell = pC && aC
+          && state.player.crashCell[0] === state.ai.crashCell[0]
+          && state.player.crashCell[1] === state.ai.crashCell[1];
+        if (sameCell) state.roundWinner = 'tie';
         else if (pC) { state.roundWinner = 'ai'; score.ai++; }
         else { state.roundWinner = 'player'; score.player++; }
         updateHUD();
