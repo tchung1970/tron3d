@@ -697,9 +697,10 @@ function aiChoose() {
 }
 
 function setNextDir(cyc, d) {
-  // block 180° reversal against the most recent queued direction, so two
-  // quick presses in opposite directions don't leave the cycle flipping back
-  if (!eqDir(d, oppDir(cyc.nextDir))) cyc.nextDir = d;
+  // block 180° reversal against the committed direction, not the queued one —
+  // otherwise two quick turns in the same tick can compose into a reversal
+  // that walks the cycle straight into its own trail on the next tick.
+  if (!eqDir(d, oppDir(cyc.dir))) cyc.nextDir = d;
 }
 
 function applyTurn(cyc, oldDir) {
