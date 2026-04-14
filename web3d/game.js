@@ -810,14 +810,19 @@ function tick() {
   let pCrashCell = pNew;
   let aCrashCell = aNew;
   // True head-on: both heads stepping into the same cell at the same tick,
-  // with neither having hit anything else first. That's the only case that
-  // scores as a TIE. It also forces both to die at the shared cell so the
-  // two meshes don't render stacked in one tile.
-  const headOn = pNew[0] === aNew[0] && pNew[1] === aNew[1]
-    && pCause === null && aCause === null;
-  if (headOn) {
-    pCause = 'opp'; pCrashCell = [pNew[0], pNew[1]];
-    aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]];
+  // moving in directly opposite directions (cycles ramming each other on
+  // the same axis), with neither having hit anything else first. Only this
+  // strict case scores as TIE — perpendicular same-cell convergence is not
+  // a head-on and resolves as AI takes it.
+  const sameCell = pNew[0] === aNew[0] && pNew[1] === aNew[1];
+  const oppositeDirs = state.player.dir[0] + state.ai.dir[0] === 0
+    && state.player.dir[1] + state.ai.dir[1] === 0;
+  const headOn = sameCell && oppositeDirs && pCause === null && aCause === null;
+  if (sameCell) {
+    // Still kill both meshes at the shared cell so they don't render stacked
+    // even when it's not a tie.
+    if (pCause === null) { pCause = 'opp'; pCrashCell = [pNew[0], pNew[1]]; }
+    if (aCause === null) { aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]]; }
   }
   const pCrash = pCause !== null;
   const aCrash = aCause !== null;
