@@ -809,11 +809,14 @@ function tick() {
              : null;
   let pCrashCell = pNew;
   let aCrashCell = aNew;
-  // Ramming the opponent's current head cell kills both — the opponent can't
-  // dodge a head-on by turning at the last tick. Both cycles explode at the
-  // ram point so it reads visually as a mutual wipeout, not a rear-end.
-  const pRamsAi = pCause === 'opp' && pNew[0] === state.ai.cell[0] && pNew[1] === state.ai.cell[1];
-  const aRamsPlayer = aCause === 'opp' && aNew[0] === state.player.cell[0] && aNew[1] === state.player.cell[1];
+  // Proximity ram: if you crash on the opponent's trail within 1 cell of
+  // their current head (a 3x3 zone around them), treat it as a mutual
+  // collision — the opponent can't dodge a head-on by turning perpendicular
+  // one tick early and leaving you to crash alone into the vacated cell.
+  const chebyAi = Math.max(Math.abs(pNew[0] - state.ai.cell[0]), Math.abs(pNew[1] - state.ai.cell[1]));
+  const chebyPlayer = Math.max(Math.abs(aNew[0] - state.player.cell[0]), Math.abs(aNew[1] - state.player.cell[1]));
+  const pRamsAi = pCause === 'opp' && chebyAi <= 1;
+  const aRamsPlayer = aCause === 'opp' && chebyPlayer <= 1;
   if (pRamsAi && aCause === null) {
     aCause = 'opp';
     aCrashCell = [state.ai.cell[0], state.ai.cell[1]];
