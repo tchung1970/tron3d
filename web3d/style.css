@@ -101,43 +101,43 @@ canvas { display: block; position: fixed; inset: 0; }
 
 #message {
   position: absolute;
-  top: 22%;
+  bottom: 56px;
   left: 50%;
-  transform: translate(-50%, -50%);
+  transform: translateX(-50%);
   text-align: center;
-  padding: 40px 64px;
+  padding: 16px 32px;
   background: rgba(10, 14, 28, 0.85);
   border: 2px solid rgba(111, 220, 255, 0.7);
-  border-radius: 28px;
+  border-radius: 18px;
   -webkit-backdrop-filter: blur(8px);
   backdrop-filter: blur(8px);
-  box-shadow: 0 0 80px rgba(111, 220, 255, 0.28), inset 0 0 40px rgba(111, 220, 255, 0.08);
-  min-width: min(460px, 90vw);
+  box-shadow: 0 0 50px rgba(111, 220, 255, 0.24), inset 0 0 24px rgba(111, 220, 255, 0.07);
+  min-width: min(360px, 88vw);
   transition: opacity 0.22s ease;
 }
-#message.hidden { opacity: 0; pointer-events: none; transform: translate(-50%, -50%) scale(0.97); }
+#message.hidden { opacity: 0; pointer-events: none; transform: translateX(-50%) scale(0.97); }
 
 #message h1 {
-  font-size: clamp(36px, 5vw, 60px);
+  font-size: clamp(20px, 2.6vw, 30px);
   font-weight: 800;
-  letter-spacing: 10px;
-  text-shadow: 0 0 28px rgba(111, 220, 255, 0.9);
+  letter-spacing: 6px;
+  text-shadow: 0 0 18px rgba(111, 220, 255, 0.9);
   color: #ffffff;
-  margin-bottom: 14px;
+  margin-bottom: 6px;
 }
-#message h1.yellow { text-shadow: 0 0 28px #ffde2e, 0 0 60px rgba(255, 222, 46, 0.5); color: #fff1a0; }
-#message h1.red { text-shadow: 0 0 28px #ff4d4d, 0 0 60px rgba(255, 77, 77, 0.5); }
+#message h1.yellow { text-shadow: 0 0 18px #ffde2e, 0 0 36px rgba(255, 222, 46, 0.5); color: #fff1a0; }
+#message h1.red { text-shadow: 0 0 18px #ff4d4d, 0 0 36px rgba(255, 77, 77, 0.5); }
 
 #message h2 {
-  font-size: clamp(16px, 1.8vw, 22px);
+  font-size: clamp(12px, 1.3vw, 16px);
   font-weight: 500;
-  letter-spacing: 3px;
+  letter-spacing: 2px;
   color: #d0daff;
-  margin-bottom: 10px;
+  margin-bottom: 4px;
 }
 
 #message p {
-  font-size: clamp(12px, 1.1vw, 15px);
+  font-size: clamp(10px, 0.9vw, 12px);
   letter-spacing: 2px;
   color: #98a2c0;
   text-transform: uppercase;
