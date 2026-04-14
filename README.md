@@ -32,7 +32,7 @@ Steering is **relative** — `←`/`→` rotate the cycle 90° from its current 
 
 - Grid-based: each cycle moves exactly one cell per tick.
 - 180° reversals are blocked — you can't turn back into your own trail.
-- Collisions check walls, both trails, and head-on crashes.
+- Rounds end only when a cycle's head lands on a wall or on a trail cell (own or opponent). Two cycles entering the same empty cell on the same tick is not a crash.
 - Player is **yellow**, AI is **red**.
 - AI uses a short-horizon flood-fill (25 cells) plus a small straight-line bias — deterministic and deliberate, but short-sighted enough to be outplanned by a human.
 - First to 3 rounds wins the match.
@@ -45,6 +45,7 @@ Steering is **relative** — `←`/`→` rotate the cycle 90° from its current 
 - UnrealBloomPass + ACES tone mapping for the neon glow, tuned low-strength / high-threshold so only the brightest accents bloom.
 - Chase camera smoothly lerps position and look target; cycle rotation smoothly interpolates on turns; visual position lerps between ticks so motion is silky regardless of tick rate.
 - Recognizer drifts across the sky above the arena with a pulsing beacon and under-belly light; respawns on the opposite side with randomized z / speed / direction when it exits.
+- Crashes spawn a particle burst, additive flash sphere, and expanding ground shockwave ring at the impact cell, tinted to the cycle's colour.
 - Wireframe skyline megastructures sit beyond the arena boundary; a starfield dome above sells the nighttime Grid look.
 
 ## Project layout
