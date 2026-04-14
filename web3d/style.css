@@ -88,6 +88,23 @@ canvas { display: block; position: fixed; inset: 0; }
   text-transform: uppercase;
 }
 
+#gh-link {
+  position: absolute;
+  bottom: 18px;
+  right: 20px;
+  font-size: clamp(11px, 1vw, 14px);
+  letter-spacing: 2px;
+  color: #98a2c0;
+  text-transform: uppercase;
+  text-decoration: none;
+  pointer-events: auto;
+  transition: color 0.15s ease, text-shadow 0.15s ease;
+}
+#gh-link:hover {
+  color: #6fdcff;
+  text-shadow: 0 0 10px rgba(111, 220, 255, 0.7);
+}
+
 #message {
   position: absolute;
   top: 50%;
