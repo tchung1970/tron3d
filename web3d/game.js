@@ -10,7 +10,7 @@ const CELL = 4;
 const HALF = (GRID * CELL) / 2;
 const WALL_H = 0.35;
 const WALL_W = CELL * 0.08;
-const MOVE_MS = 150;
+const MOVE_MS = 180;
 const WIN_SCORE = 3;
 
 const COLORS = {
@@ -585,8 +585,9 @@ function floodFill(start, blocked, limit = 600) {
 // Weakened AI: picks the best move deterministically, but with a short
 // planning horizon so it can't see long-range traps. Feels deliberate but
 // can still be outplanned by a human.
-const AI_HORIZON = 12;       // flood-fill cap; short enough to miss long traps
+const AI_HORIZON = 8;        // flood-fill cap; short enough to miss long traps
 const AI_STRAIGHT_BIAS = 4;  // small straight bias for deliberate feel
+const AI_MISTAKE_RATE = 0.18; // chance of picking a random legal move instead of best
 
 function aiChoose() {
   const cur = state.ai.dir;
@@ -597,15 +598,22 @@ function aiChoose() {
   for (const k of state.player.trail) blocked.add(k);
   for (const k of state.ai.trail) blocked.add(k);
 
+  const legal = [];
   let bestDir = cur, bestScore = -1;
   for (const d of candidates) {
     const n = stepCell(state.ai.cell, d);
     if (!inBounds(n)) continue;
     const nk = n[0] * 10000 + n[1];
     if (blocked.has(nk)) continue;
+    legal.push(d);
     let s = floodFill(n, blocked, AI_HORIZON);
     if (eqDir(d, cur)) s += AI_STRAIGHT_BIAS;
+    s += Math.random() * 2; // jitter so the AI isn't perfectly deterministic
     if (s > bestScore) { bestScore = s; bestDir = d; }
+  }
+  // Occasionally pick a random legal move — gives the human openings.
+  if (legal.length > 1 && Math.random() < AI_MISTAKE_RATE) {
+    bestDir = legal[Math.floor(Math.random() * legal.length)];
   }
   state.ai.nextDir = bestDir;
 }
