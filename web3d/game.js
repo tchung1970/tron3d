@@ -1011,16 +1011,11 @@ function animate(now) {
         };
         if (pC) resolveCrash(state.player);
         if (aC) resolveCrash(state.ai);
-        // Tie only when both cycles crashed into the exact same cell — a true
-        // same-cell head-on. Any other simultaneous crash gives the round to
-        // whoever didn't crash; if both crashed at different cells, the
-        // player's mistake takes priority so AI wins rather than showing a
-        // misleading TIE.
-        const sameCell = pC && aC
-          && state.player.crashCell[0] === state.ai.crashCell[0]
-          && state.player.crashCell[1] === state.ai.crashCell[1];
-        if (sameCell) state.roundWinner = 'tie';
-        else if (pC) { state.roundWinner = 'ai'; score.ai++; }
+        // No ties: any crash involving the player goes to AI, any pure
+        // AI crash goes to the player. Same-cell head-on still kills both
+        // meshes to avoid stacking in one tile, but scoring-wise the
+        // player's mistake always takes priority over mutual-kill rhetoric.
+        if (pC) { state.roundWinner = 'ai'; score.ai++; }
         else { state.roundWinner = 'player'; score.player++; }
         updateHUD();
         stopSound();
@@ -1051,8 +1046,8 @@ function animate(now) {
           won ? 'yellow' : 'red');
       } else {
         state.phase = 'round_over';
-        const titles = { tie: 'TIE ROUND', ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
-        const cls = { tie: '', ai: 'red', player: 'yellow' };
+        const titles = { ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
+        const cls = { ai: 'red', player: 'yellow' };
         const sub = causeLine || `${score.player}  –  ${score.ai}`;
         showMessage(titles[state.roundWinner], sub,
           `${score.player}  –  ${score.ai}  ·  Press Space for next round`,

@@ -33,7 +33,7 @@ Steering is **relative** — `←`/`→` rotate the cycle 90° from its current 
 - Grid-based: each cycle moves exactly one cell per tick.
 - 180° reversals are blocked — you can't turn back into your own trail.
 - Rounds end when a cycle's head lands on a wall, a trail cell (own or opponent), or the same empty cell the opponent is also moving into that tick; the end-of-round message shows what was hit ("Hit the wall" / "Hit own trail" / "Hit opponent trail"). Simultaneous same-cell entry kills both cycles at the shared cell — a clean head-on tie.
-- The only tie is when both cycles crash on the exact same cell (either a same-cell head-on, or both dying on the same trail cell). If both cycles crash on the same tick but at different cells, the round goes to the AI rather than being called a tie — running into the opponent's trail is always a loss, never a draw.
+- There are no ties. If your cycle crashes — for any reason, including a simultaneous same-cell head-on — the round goes to the AI. Only a solo AI crash awards the round to you.
 - Player is **yellow**, AI is **red**.
 - AI uses a short-horizon flood-fill (25 cells) plus a small straight-line bias — deterministic and deliberate, but short-sighted enough to be outplanned by a human.
 - First to 3 rounds wins the match.
