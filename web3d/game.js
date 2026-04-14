@@ -141,11 +141,11 @@ const boundaryGroup = new THREE.Group();
   boundaryGroup.add(new THREE.LineSegments(geom, mat));
 
   // Visible wall planes along each edge so players can see where they'll
-  // crash. Inward-facing cyan glow, semi-transparent so the arena beyond
-  // stays partly visible.
-  const ARENA_WALL_H = 1.6;
+  // crash. Inward-facing cyan glow, tall enough to read from across the
+  // arena, semi-transparent so the horizon beyond isn't fully occluded.
+  const ARENA_WALL_H = 5.0;
   const wallMat = new THREE.MeshBasicMaterial({
-    color: COLORS.boundary, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false,
+    color: COLORS.boundary, transparent: true, opacity: 0.45, side: THREE.DoubleSide, depthWrite: false,
   });
   const span = HALF * 2;
   const mkWall = (x, z, rotY) => {
@@ -159,14 +159,20 @@ const boundaryGroup = new THREE.Group();
   mkWall( HALF, 0, Math.PI / 2);
   mkWall(-HALF, 0, Math.PI / 2);
 
-  // Bright bottom rail on each edge — a crisp neon strip at ground level
-  // so the boundary reads clearly even from across the arena.
+  // Bright top and bottom rails on each edge — crisp neon strips that
+  // outline the wall unambiguously.
   const railPositions = [];
   const addRail = (a, b) => railPositions.push(a[0], a[1], a[2], b[0], b[1], b[2]);
+  // ground rail
   addRail([-HALF, 0.05, -HALF], [ HALF, 0.05, -HALF]);
   addRail([ HALF, 0.05, -HALF], [ HALF, 0.05,  HALF]);
   addRail([ HALF, 0.05,  HALF], [-HALF, 0.05,  HALF]);
   addRail([-HALF, 0.05,  HALF], [-HALF, 0.05, -HALF]);
+  // top rail
+  addRail([-HALF, ARENA_WALL_H, -HALF], [ HALF, ARENA_WALL_H, -HALF]);
+  addRail([ HALF, ARENA_WALL_H, -HALF], [ HALF, ARENA_WALL_H,  HALF]);
+  addRail([ HALF, ARENA_WALL_H,  HALF], [-HALF, ARENA_WALL_H,  HALF]);
+  addRail([-HALF, ARENA_WALL_H,  HALF], [-HALF, ARENA_WALL_H, -HALF]);
   const railGeom = new THREE.BufferGeometry();
   railGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(railPositions), 3));
   const railMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
