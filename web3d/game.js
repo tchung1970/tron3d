@@ -729,14 +729,23 @@ function tick() {
   const aNew = stepCell(state.ai.cell, state.ai.dir);
   const pk = pNew[0] * 10000 + pNew[1];
   const ak = aNew[0] * 10000 + aNew[1];
-  const pCrash = !inBounds(pNew) || state.player.trail.has(pk) || state.ai.trail.has(pk);
-  const aCrash = !inBounds(aNew) || state.player.trail.has(ak) || state.ai.trail.has(ak);
+  const pCause = !inBounds(pNew) ? 'wall'
+               : state.player.trail.has(pk) ? 'own'
+               : state.ai.trail.has(pk) ? 'opp'
+               : null;
+  const aCause = !inBounds(aNew) ? 'wall'
+               : state.ai.trail.has(ak) ? 'own'
+               : state.player.trail.has(ak) ? 'opp'
+               : null;
+  const pCrash = pCause !== null;
+  const aCrash = aCause !== null;
   if (!pCrash) {
     state.player.cell = pNew;
     addTrailAt(state.player, pNew[0], pNew[1]);
   } else {
     state.player.alive = false;
     state.player.crashCell = pNew;
+    state.player.crashCause = pCause;
   }
   if (!aCrash) {
     state.ai.cell = aNew;
@@ -744,6 +753,7 @@ function tick() {
   } else {
     state.ai.alive = false;
     state.ai.crashCell = aNew;
+    state.ai.crashCause = aCause;
   }
   return [pCrash, aCrash];
 }
@@ -905,18 +915,21 @@ function animate(now) {
       state.tickAccum -= MOVE_MS;
       const [pC, aC] = tick();
       if (pC || aC) {
-        if (pC) {
-          const cw = cellToWorld(state.player.crashCell[0], state.player.crashCell[1]);
-          state.player.mesh.position.copy(cw);
-          state.player.mesh.visible = false;
-          spawnExplosion(cw, state.player.color);
-        }
-        if (aC) {
-          const cw = cellToWorld(state.ai.crashCell[0], state.ai.crashCell[1]);
-          state.ai.mesh.position.copy(cw);
-          state.ai.mesh.visible = false;
-          spawnExplosion(cw, state.ai.color);
-        }
+        const resolveCrash = (cyc) => {
+          // Extend the trail ribbon all the way to the crash cell so the
+          // collision point is visually unambiguous, then place the (hidden)
+          // cycle and the explosion there, clamped to the arena boundary for
+          // wall crashes so the FX render inside the play area.
+          finalizeSegment(cyc, cyc.crashCell);
+          const cw = cellToWorld(cyc.crashCell[0], cyc.crashCell[1]);
+          cw.x = Math.max(-HALF, Math.min(HALF, cw.x));
+          cw.z = Math.max(-HALF, Math.min(HALF, cw.z));
+          cyc.mesh.position.copy(cw);
+          cyc.mesh.visible = false;
+          spawnExplosion(cw, cyc.color);
+        };
+        if (pC) resolveCrash(state.player);
+        if (aC) resolveCrash(state.ai);
         if (pC && aC) state.roundWinner = 'tie';
         else if (pC) { state.roundWinner = 'ai'; score.ai++; }
         else { state.roundWinner = 'player'; score.player++; }
@@ -935,17 +948,26 @@ function animate(now) {
   if (state.phase === 'crashing') {
     state.crashDelayLeft -= dt;
     if (state.crashDelayLeft <= 0) {
+      const causeLabels = { wall: 'Hit the wall', own: 'Hit own trail', opp: 'Hit opponent trail' };
+      const causes = [];
+      if (!state.player.alive && state.player.crashCause) causes.push(`Human: ${causeLabels[state.player.crashCause]}`);
+      if (!state.ai.alive && state.ai.crashCause) causes.push(`AI: ${causeLabels[state.ai.crashCause]}`);
+      const causeLine = causes.join(' · ');
       if (score.player >= WIN_SCORE || score.ai >= WIN_SCORE) {
         state.phase = 'match_over';
         const won = score.player > score.ai;
-        showMessage(won ? 'VICTORY' : 'DEFEAT', `Final  ${score.player}  –  ${score.ai}`,
-          'Press Space to play again', won ? 'yellow' : 'red');
+        const sub = causeLine || `Final  ${score.player}  –  ${score.ai}`;
+        showMessage(won ? 'VICTORY' : 'DEFEAT', sub,
+          `Final  ${score.player}  –  ${score.ai}  ·  Press Space to play again`,
+          won ? 'yellow' : 'red');
       } else {
         state.phase = 'round_over';
         const titles = { tie: 'TIE ROUND', ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
         const cls = { tie: '', ai: 'red', player: 'yellow' };
-        showMessage(titles[state.roundWinner], `${score.player}  –  ${score.ai}`,
-          'Press Space for next round', cls[state.roundWinner]);
+        const sub = causeLine || `${score.player}  –  ${score.ai}`;
+        showMessage(titles[state.roundWinner], sub,
+          `${score.player}  –  ${score.ai}  ·  Press Space for next round`,
+          cls[state.roundWinner]);
       }
     }
   }
