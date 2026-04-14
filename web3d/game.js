@@ -143,12 +143,12 @@ const boundaryGroup = new THREE.Group();
   // Visible wall planes + yellow/black hazard band at the base. Low opacity
   // on the glass so the horizon isn't occluded; the hazard stripe is the
   // clear "do not cross" warning the player can read from any distance.
-  const ARENA_WALL_H = 2.2;
+  const ARENA_WALL_H = 6.5;
   const HAZARD_H = 0.55;
   const span = HALF * 2;
 
   const wallMat = new THREE.MeshBasicMaterial({
-    color: COLORS.boundary, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false,
+    color: 0xff3b3b, transparent: true, opacity: 0.22, side: THREE.DoubleSide, depthWrite: false,
   });
 
   // Procedural yellow/black diagonal hazard texture for the base band.
