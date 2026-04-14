@@ -582,11 +582,8 @@ function floodFill(start, blocked, limit = 600) {
   return seen.size;
 }
 
-// Weakened AI: picks the best move deterministically, but with a short
-// planning horizon so it can't see long-range traps. Feels deliberate but
-// can still be outplanned by a human.
-const AI_HORIZON = 25;       // flood-fill cap; short enough to miss long traps
-const AI_STRAIGHT_BIAS = 4;  // small straight bias for deliberate feel
+const AI_HORIZON = 25;
+const AI_STRAIGHT_BIAS = 4;
 
 function aiChoose() {
   const cur = state.ai.dir;
