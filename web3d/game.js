@@ -639,9 +639,8 @@ function tick() {
   const aNew = stepCell(state.ai.cell, state.ai.dir);
   const pk = pNew[0] * 10000 + pNew[1];
   const ak = aNew[0] * 10000 + aNew[1];
-  let pCrash = !inBounds(pNew) || state.player.trail.has(pk) || state.ai.trail.has(pk);
-  let aCrash = !inBounds(aNew) || state.player.trail.has(ak) || state.ai.trail.has(ak);
-  if (pNew[0] === aNew[0] && pNew[1] === aNew[1]) { pCrash = true; aCrash = true; }
+  const pCrash = !inBounds(pNew) || state.player.trail.has(pk) || state.ai.trail.has(pk);
+  const aCrash = !inBounds(aNew) || state.player.trail.has(ak) || state.ai.trail.has(ak);
   if (!pCrash) {
     state.player.cell = pNew;
     addTrailAt(state.player, pNew[0], pNew[1]);
