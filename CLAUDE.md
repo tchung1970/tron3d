@@ -20,6 +20,7 @@ Game engine invariants:
 
 - **Grid-based movement**: one cell per tick (80–110 ms). Position is integer grid coords; visual position lerps between ticks so motion is smooth regardless of tick rate.
 - **Collision check** per tick: walls (out of bounds) and trail cells (own or opponent). Rounds end only when a head lands on a wall or trail — mid-air same-cell collisions are not an end condition.
+- **Crash visual**: on crash, the cycle's mesh is snapped to the crash cell's world position (even if out of bounds — clamped by `cellToWorld` math) and hidden, and `spawnExplosion` fires a particle burst + additive flash + expanding shockwave ring at that spot. `updateExplosions` ticks the active list every frame.
 - **180° reversal is blocked** — inputs that would turn a cycle directly back into its own trail are ignored.
 - **Flood-fill AI** with depth cap ~25 cells: from each legal candidate move, flood reachable open cells and pick the move preserving the most room; tiebreak toward going straight. The cap keeps it short-sighted (beatable by a human).
 - **Match length**: first-to-3.

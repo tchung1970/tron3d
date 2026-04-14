@@ -436,6 +436,93 @@ function makeTrailMaterial(color) {
 const playerTrailMat = makeTrailMaterial(COLORS.player);
 const aiTrailMat = makeTrailMaterial(COLORS.ai);
 
+// --- EXPLOSIONS ---
+// Particle burst + additive flash + expanding shockwave ring.
+const explosions = [];
+
+function spawnExplosion(pos, color) {
+  const N = 90;
+  const posArr = new Float32Array(N * 3);
+  const velArr = new Float32Array(N * 3);
+  for (let i = 0; i < N; i++) {
+    posArr[i * 3]     = pos.x;
+    posArr[i * 3 + 1] = pos.y + 0.6;
+    posArr[i * 3 + 2] = pos.z;
+    const u = Math.random() * Math.PI * 2;
+    const v = Math.acos(1 - 2 * Math.random());
+    const speed = 6 + Math.random() * 18;
+    velArr[i * 3]     = Math.sin(v) * Math.cos(u) * speed;
+    velArr[i * 3 + 1] = Math.abs(Math.cos(v)) * speed + 4;
+    velArr[i * 3 + 2] = Math.sin(v) * Math.sin(u) * speed;
+  }
+  const geom = new THREE.BufferGeometry();
+  geom.setAttribute('position', new THREE.BufferAttribute(posArr, 3));
+  const mat = new THREE.PointsMaterial({
+    color, size: 0.9, transparent: true, opacity: 1.0,
+    blending: THREE.AdditiveBlending, depthWrite: false, sizeAttenuation: true,
+  });
+  const points = new THREE.Points(geom, mat);
+  scene.add(points);
+
+  const flashMat = new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity: 1.0,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const flash = new THREE.Mesh(new THREE.SphereGeometry(1.4, 20, 14), flashMat);
+  flash.position.set(pos.x, pos.y + 0.6, pos.z);
+  scene.add(flash);
+
+  const ringMat = new THREE.MeshBasicMaterial({
+    color, transparent: true, opacity: 0.9, side: THREE.DoubleSide,
+    blending: THREE.AdditiveBlending, depthWrite: false,
+  });
+  const ring = new THREE.Mesh(new THREE.RingGeometry(0.5, 0.8, 48), ringMat);
+  ring.rotation.x = -Math.PI / 2;
+  ring.position.set(pos.x, 0.05, pos.z);
+  scene.add(ring);
+
+  explosions.push({
+    points, mat, velArr, flash, flashMat, ring, ringMat,
+    age: 0, life: 1.5,
+  });
+}
+
+function updateExplosions(dt) {
+  const dts = dt / 1000;
+  for (let i = explosions.length - 1; i >= 0; i--) {
+    const e = explosions[i];
+    e.age += dts;
+    const t = e.age / e.life;
+    const posAttr = e.points.geometry.attributes.position;
+    const arr = posAttr.array;
+    const v = e.velArr;
+    for (let j = 0; j < arr.length; j += 3) {
+      arr[j]     += v[j]     * dts;
+      arr[j + 1] += v[j + 1] * dts;
+      arr[j + 2] += v[j + 2] * dts;
+      v[j + 1]   -= 22 * dts;
+    }
+    posAttr.needsUpdate = true;
+    e.mat.opacity = Math.max(0, 1 - t);
+    e.mat.size    = 0.9 * (1 - t * 0.45);
+
+    const flashT = Math.min(1, e.age / 0.18);
+    e.flash.scale.setScalar(1 + flashT * 5.5);
+    e.flashMat.opacity = Math.max(0, 1 - e.age / 0.25);
+
+    const ringT = Math.min(1, e.age / 0.6);
+    e.ring.scale.setScalar(1 + ringT * 9);
+    e.ringMat.opacity = Math.max(0, 0.85 - ringT);
+
+    if (e.age >= e.life) {
+      scene.remove(e.points); e.points.geometry.dispose(); e.mat.dispose();
+      scene.remove(e.flash); e.flash.geometry.dispose(); e.flashMat.dispose();
+      scene.remove(e.ring); e.ring.geometry.dispose(); e.ringMat.dispose();
+      explosions.splice(i, 1);
+    }
+  }
+}
+
 // --- GAME STATE ---
 function cellToWorld(cx, cz) {
   return new THREE.Vector3(
@@ -544,6 +631,8 @@ function resetRound() {
   const aw = cellToWorld(state.ai.cell[0], state.ai.cell[1]);
   playerCycle.position.copy(pw); playerCycle.rotation.y = dirAngle(state.player.dir);
   aiCycle.position.copy(aw);     aiCycle.rotation.y = dirAngle(state.ai.dir);
+  playerCycle.visible = true;
+  aiCycle.visible = true;
 
   // snap camera behind player
   snapCameraBehind(state.player);
@@ -644,10 +733,16 @@ function tick() {
   if (!pCrash) {
     state.player.cell = pNew;
     addTrailAt(state.player, pNew[0], pNew[1]);
+  } else {
+    state.player.alive = false;
+    state.player.crashCell = pNew;
   }
   if (!aCrash) {
     state.ai.cell = aNew;
     addTrailAt(state.ai, aNew[0], aNew[1]);
+  } else {
+    state.ai.alive = false;
+    state.ai.crashCell = aNew;
   }
   return [pCrash, aCrash];
 }
@@ -809,6 +904,18 @@ function animate(now) {
       state.tickAccum -= MOVE_MS;
       const [pC, aC] = tick();
       if (pC || aC) {
+        if (pC) {
+          const cw = cellToWorld(state.player.crashCell[0], state.player.crashCell[1]);
+          state.player.mesh.position.copy(cw);
+          state.player.mesh.visible = false;
+          spawnExplosion(cw, state.player.color);
+        }
+        if (aC) {
+          const cw = cellToWorld(state.ai.crashCell[0], state.ai.crashCell[1]);
+          state.ai.mesh.position.copy(cw);
+          state.ai.mesh.visible = false;
+          spawnExplosion(cw, state.ai.color);
+        }
         if (pC && aC) state.roundWinner = 'tie';
         else if (pC) { state.roundWinner = 'ai'; score.ai++; }
         else { state.roundWinner = 'player'; score.player++; }
@@ -837,6 +944,7 @@ function animate(now) {
     ? Math.min(1, state.tickAccum / MOVE_MS) : 0;
 
   for (const cyc of [state.player, state.ai]) {
+    if (!cyc.alive) continue;
     _from.copy(cellToWorld(cyc.prevCell[0], cyc.prevCell[1]));
     _to.copy(cellToWorld(cyc.cell[0], cyc.cell[1]));
     cyc.mesh.position.lerpVectors(_from, _to, lerpT);
@@ -886,6 +994,8 @@ function animate(now) {
   } else {
     renderer.toneMappingExposure = 1.1;
   }
+
+  updateExplosions(dt);
 
   composer.render();
   requestAnimationFrame(animate);
