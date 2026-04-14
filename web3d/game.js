@@ -809,6 +809,14 @@ function tick() {
              : null;
   let pCrashCell = pNew;
   let aCrashCell = aNew;
+  // Simultaneous same-cell entry is a head-on — both cycles die. Without
+  // this the two meshes would stack on the same cell and render as a single
+  // overlapping cycle.
+  if (pNew[0] === aNew[0] && pNew[1] === aNew[1]) {
+    if (pCause === null) { pCause = 'opp'; pCrashCell = [pNew[0], pNew[1]]; }
+    if (aCause === null) { aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]]; }
+  }
+
   // Head-on ram: if you crash on the opponent's trail while they're still
   // on a collision course with you (same row or column, directions pointing
   // at each other within the last 3 ticks OR currently within 4 cells), it
