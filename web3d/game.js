@@ -923,19 +923,29 @@ function animate(now) {
         updateHUD();
         stopSound();
         state.crashFlash = 1;
-        if (score.player >= WIN_SCORE || score.ai >= WIN_SCORE) {
-          state.phase = 'match_over';
-          const won = score.player > score.ai;
-          showMessage(won ? 'VICTORY' : 'DEFEAT', `Final  ${score.player}  –  ${score.ai}`,
-            'Press Space to play again', won ? 'yellow' : 'red');
-        } else {
-          state.phase = 'round_over';
-          const titles = { tie: 'TIE ROUND', ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
-          const cls = { tie: '', ai: 'red', player: 'yellow' };
-          showMessage(titles[state.roundWinner], `${score.player}  –  ${score.ai}`,
-            'Press Space for next round', cls[state.roundWinner]);
-        }
+        // Hold the end-of-round message so the explosion is visible first —
+        // the HUD panel is ~85% opaque and otherwise instantly covers the FX.
+        state.phase = 'crashing';
+        state.crashDelayLeft = 900;
         break;
+      }
+    }
+  }
+
+  if (state.phase === 'crashing') {
+    state.crashDelayLeft -= dt;
+    if (state.crashDelayLeft <= 0) {
+      if (score.player >= WIN_SCORE || score.ai >= WIN_SCORE) {
+        state.phase = 'match_over';
+        const won = score.player > score.ai;
+        showMessage(won ? 'VICTORY' : 'DEFEAT', `Final  ${score.player}  –  ${score.ai}`,
+          'Press Space to play again', won ? 'yellow' : 'red');
+      } else {
+        state.phase = 'round_over';
+        const titles = { tie: 'TIE ROUND', ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
+        const cls = { tie: '', ai: 'red', player: 'yellow' };
+        showMessage(titles[state.roundWinner], `${score.player}  –  ${score.ai}`,
+          'Press Space for next round', cls[state.roundWinner]);
       }
     }
   }
