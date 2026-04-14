@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="color-scheme" content="dark">
+<title>TRON 3D</title>
+<link rel="stylesheet" href="style.css">
+<script type="importmap">
+{
+  "imports": {
+    "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+    "three/addons/": "https://unpkg.com/three@0.160.0/examples/jsm/"
+  }
+}
+</script>
+</head>
+<body>
+<div id="hud">
+  <div id="topbar">
+    <div id="title">TRON 3D</div>
+    <div id="score">
+      <span class="p">HUMAN</span>
+      <span id="score-p">0</span>
+      <span class="sep">:</span>
+      <span id="score-a">0</span>
+      <span class="a">AI</span>
+    </div>
+    <div id="subtitle">First to 3 rounds wins</div>
+  </div>
+  <div id="tip">&larr; &rarr; to turn &middot; Space start/pause &middot; Esc reset</div>
+  <div id="message" class="hidden">
+    <h1 id="msg-title"></h1>
+    <h2 id="msg-sub"></h2>
+    <p id="msg-small"></p>
+  </div>
+</div>
+<audio id="cycleSound" src="sound.wav" loop preload="auto"></audio>
+<script type="module" src="game.js"></script>
+</body>
+</html>
