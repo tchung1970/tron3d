@@ -6,7 +6,7 @@ A browser-based 3D Tron light-cycle duel built with Three.js, featuring neon blo
 
 https://ai.tchung.org/tron3d/
 
-## Running
+## Running Locally
 
 The build is fully static, but **must** be served over HTTP — `web3d/index.html` uses an ES module importmap to load Three.js 0.160 from `unpkg.com`, and browsers block module imports over `file://`.
 
