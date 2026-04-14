@@ -1,6 +1,8 @@
-# Tron Light Cycles (3D)
+# Tron 3D
 
 A browser-based 3D Tron light-cycle duel built with Three.js, featuring neon bloom, a chase camera, and a Recognizer cameo drifting across the Grid.
+
+**Live game**: https://ai.tchung.org/tron3d/
 
 ## Running
 
