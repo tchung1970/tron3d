@@ -734,7 +734,12 @@ window.addEventListener('keydown', (e) => {
     return;
   }
   const k = (e.key || '').toLowerCase();
-  if (k === 'escape' || k === 'q') {
+  if (k === 'escape') {
+    stopSound();
+    window.location.href = '/';
+    return;
+  }
+  if (k === 'q') {
     resetMatch();
     state.phase = 'ready';
     hideMessage();
