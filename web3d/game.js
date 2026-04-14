@@ -809,14 +809,15 @@ function tick() {
              : null;
   let pCrashCell = pNew;
   let aCrashCell = aNew;
-  // Simultaneous same-cell entry is the only mutual kill — both heads moving
-  // into the same empty cell end the round for both. Without this the two
-  // meshes would stack on the same cell and render as a single overlapping
-  // cycle. Any other trail hit resolves normally: the rider that hit the
-  // trail loses, even if the opponent's head happens to be nearby.
-  if (pNew[0] === aNew[0] && pNew[1] === aNew[1]) {
-    if (pCause === null) { pCause = 'opp'; pCrashCell = [pNew[0], pNew[1]]; }
-    if (aCause === null) { aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]]; }
+  // True head-on: both heads stepping into the same cell at the same tick,
+  // with neither having hit anything else first. That's the only case that
+  // scores as a TIE. It also forces both to die at the shared cell so the
+  // two meshes don't render stacked in one tile.
+  const headOn = pNew[0] === aNew[0] && pNew[1] === aNew[1]
+    && pCause === null && aCause === null;
+  if (headOn) {
+    pCause = 'opp'; pCrashCell = [pNew[0], pNew[1]];
+    aCause = 'opp'; aCrashCell = [aNew[0], aNew[1]];
   }
   const pCrash = pCause !== null;
   const aCrash = aCause !== null;
@@ -836,7 +837,7 @@ function tick() {
     state.ai.crashCell = aCrashCell;
     state.ai.crashCause = aCause;
   }
-  return [pCrash, aCrash];
+  return [pCrash, aCrash, headOn];
 }
 
 // --- VISUAL HELPERS ---
@@ -994,7 +995,7 @@ function animate(now) {
     state.tickAccum += dt;
     while (state.tickAccum >= MOVE_MS) {
       state.tickAccum -= MOVE_MS;
-      const [pC, aC] = tick();
+      const [pC, aC, headOn] = tick();
       if (pC || aC) {
         const resolveCrash = (cyc) => {
           // Extend the trail ribbon all the way to the crash cell so the
@@ -1011,11 +1012,13 @@ function animate(now) {
         };
         if (pC) resolveCrash(state.player);
         if (aC) resolveCrash(state.ai);
-        // No ties: any crash involving the player goes to AI, any pure
-        // AI crash goes to the player. Same-cell head-on still kills both
-        // meshes to avoid stacking in one tile, but scoring-wise the
-        // player's mistake always takes priority over mutual-kill rhetoric.
-        if (pC) { state.roundWinner = 'ai'; score.ai++; }
+        // Tie only on a true head-on (both heads into the same empty cell
+        // same tick). Any other crash resolves normally — whoever crashed
+        // loses, and if both crashed for independent reasons the player's
+        // visible mistake takes priority so AI gets the round rather than
+        // showing a misleading TIE.
+        if (headOn) state.roundWinner = 'tie';
+        else if (pC) { state.roundWinner = 'ai'; score.ai++; }
         else { state.roundWinner = 'player'; score.player++; }
         updateHUD();
         stopSound();
@@ -1046,8 +1049,8 @@ function animate(now) {
           won ? 'yellow' : 'red');
       } else {
         state.phase = 'round_over';
-        const titles = { ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
-        const cls = { ai: 'red', player: 'yellow' };
+        const titles = { tie: 'TIE ROUND', ai: 'AI TAKES IT', player: 'ROUND TO YOU' };
+        const cls = { tie: '', ai: 'red', player: 'yellow' };
         const sub = causeLine || `${score.player}  –  ${score.ai}`;
         showMessage(titles[state.roundWinner], sub,
           `${score.player}  –  ${score.ai}  ·  Press Space for next round`,
