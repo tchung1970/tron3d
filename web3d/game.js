@@ -140,42 +140,74 @@ const boundaryGroup = new THREE.Group();
   const mat = new THREE.LineBasicMaterial({ color: COLORS.boundary, transparent: true, opacity: 0.9 });
   boundaryGroup.add(new THREE.LineSegments(geom, mat));
 
-  // Visible wall planes along each edge so players can see where they'll
-  // crash. Inward-facing cyan glow, tall enough to read from across the
-  // arena, semi-transparent so the horizon beyond isn't fully occluded.
-  const ARENA_WALL_H = 5.0;
-  const wallMat = new THREE.MeshBasicMaterial({
-    color: COLORS.boundary, transparent: true, opacity: 0.45, side: THREE.DoubleSide, depthWrite: false,
-  });
+  // Visible wall planes + yellow/black hazard band at the base. Low opacity
+  // on the glass so the horizon isn't occluded; the hazard stripe is the
+  // clear "do not cross" warning the player can read from any distance.
+  const ARENA_WALL_H = 2.2;
+  const HAZARD_H = 0.55;
   const span = HALF * 2;
-  const mkWall = (x, z, rotY) => {
-    const m = new THREE.Mesh(new THREE.PlaneGeometry(span, ARENA_WALL_H), wallMat);
-    m.position.set(x, ARENA_WALL_H / 2, z);
-    m.rotation.y = rotY;
-    boundaryGroup.add(m);
-  };
-  mkWall(0,  HALF, 0);
-  mkWall(0, -HALF, 0);
-  mkWall( HALF, 0, Math.PI / 2);
-  mkWall(-HALF, 0, Math.PI / 2);
 
-  // Bright top and bottom rails on each edge — crisp neon strips that
-  // outline the wall unambiguously.
+  const wallMat = new THREE.MeshBasicMaterial({
+    color: COLORS.boundary, transparent: true, opacity: 0.14, side: THREE.DoubleSide, depthWrite: false,
+  });
+
+  // Procedural yellow/black diagonal hazard texture for the base band.
+  const hazardCanvas = document.createElement('canvas');
+  hazardCanvas.width = 256; hazardCanvas.height = 64;
+  {
+    const ctx = hazardCanvas.getContext('2d');
+    ctx.fillStyle = '#ffcc00';
+    ctx.fillRect(0, 0, 256, 64);
+    ctx.fillStyle = '#111111';
+    for (let x = -96; x < 320; x += 48) {
+      ctx.beginPath();
+      ctx.moveTo(x, 0);
+      ctx.lineTo(x + 24, 0);
+      ctx.lineTo(x + 24 + 64, 64);
+      ctx.lineTo(x + 64, 64);
+      ctx.closePath();
+      ctx.fill();
+    }
+  }
+  const hazardTex = new THREE.CanvasTexture(hazardCanvas);
+  hazardTex.wrapS = THREE.RepeatWrapping;
+  hazardTex.wrapT = THREE.ClampToEdgeWrapping;
+  hazardTex.repeat.set(Math.round(span / 4), 1);
+  hazardTex.anisotropy = 8;
+  const hazardMat = new THREE.MeshBasicMaterial({
+    map: hazardTex, side: THREE.DoubleSide, toneMapped: false,
+  });
+
+  const mkWallPair = (x, z, rotY) => {
+    const glass = new THREE.Mesh(new THREE.PlaneGeometry(span, ARENA_WALL_H), wallMat);
+    glass.position.set(x, ARENA_WALL_H / 2, z);
+    glass.rotation.y = rotY;
+    boundaryGroup.add(glass);
+    const hazard = new THREE.Mesh(new THREE.PlaneGeometry(span, HAZARD_H), hazardMat);
+    hazard.position.set(x, HAZARD_H / 2, z);
+    hazard.rotation.y = rotY;
+    boundaryGroup.add(hazard);
+  };
+  mkWallPair(0,  HALF, 0);
+  mkWallPair(0, -HALF, 0);
+  mkWallPair( HALF, 0, Math.PI / 2);
+  mkWallPair(-HALF, 0, Math.PI / 2);
+
+  // Red warning rails — crisp neon outlines top and bottom of the wall.
   const railPositions = [];
   const addRail = (a, b) => railPositions.push(a[0], a[1], a[2], b[0], b[1], b[2]);
-  // ground rail
-  addRail([-HALF, 0.05, -HALF], [ HALF, 0.05, -HALF]);
-  addRail([ HALF, 0.05, -HALF], [ HALF, 0.05,  HALF]);
-  addRail([ HALF, 0.05,  HALF], [-HALF, 0.05,  HALF]);
-  addRail([-HALF, 0.05,  HALF], [-HALF, 0.05, -HALF]);
-  // top rail
-  addRail([-HALF, ARENA_WALL_H, -HALF], [ HALF, ARENA_WALL_H, -HALF]);
-  addRail([ HALF, ARENA_WALL_H, -HALF], [ HALF, ARENA_WALL_H,  HALF]);
-  addRail([ HALF, ARENA_WALL_H,  HALF], [-HALF, ARENA_WALL_H,  HALF]);
-  addRail([-HALF, ARENA_WALL_H,  HALF], [-HALF, ARENA_WALL_H, -HALF]);
+  const y0 = 0.05;
+  const y1 = ARENA_WALL_H;
+  const yH = HAZARD_H;
+  for (const y of [y0, yH, y1]) {
+    addRail([-HALF, y, -HALF], [ HALF, y, -HALF]);
+    addRail([ HALF, y, -HALF], [ HALF, y,  HALF]);
+    addRail([ HALF, y,  HALF], [-HALF, y,  HALF]);
+    addRail([-HALF, y,  HALF], [-HALF, y, -HALF]);
+  }
   const railGeom = new THREE.BufferGeometry();
   railGeom.setAttribute('position', new THREE.BufferAttribute(new Float32Array(railPositions), 3));
-  const railMat = new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 });
+  const railMat = new THREE.LineBasicMaterial({ color: 0xff3b3b, transparent: true, opacity: 0.95, toneMapped: false });
   boundaryGroup.add(new THREE.LineSegments(railGeom, railMat));
 }
 scene.add(boundaryGroup);
