@@ -729,14 +729,29 @@ function tick() {
   const aNew = stepCell(state.ai.cell, state.ai.dir);
   const pk = pNew[0] * 10000 + pNew[1];
   const ak = aNew[0] * 10000 + aNew[1];
-  const pCause = !inBounds(pNew) ? 'wall'
-               : state.player.trail.has(pk) ? 'own'
-               : state.ai.trail.has(pk) ? 'opp'
-               : null;
-  const aCause = !inBounds(aNew) ? 'wall'
-               : state.ai.trail.has(ak) ? 'own'
-               : state.player.trail.has(ak) ? 'opp'
-               : null;
+  let pCause = !inBounds(pNew) ? 'wall'
+             : state.player.trail.has(pk) ? 'own'
+             : state.ai.trail.has(pk) ? 'opp'
+             : null;
+  let aCause = !inBounds(aNew) ? 'wall'
+             : state.ai.trail.has(ak) ? 'own'
+             : state.player.trail.has(ak) ? 'opp'
+             : null;
+  let pCrashCell = pNew;
+  let aCrashCell = aNew;
+  // Ramming the opponent's current head cell kills both — the opponent can't
+  // dodge a head-on by turning at the last tick. Both cycles explode at the
+  // ram point so it reads visually as a mutual wipeout, not a rear-end.
+  const pRamsAi = pCause === 'opp' && pNew[0] === state.ai.cell[0] && pNew[1] === state.ai.cell[1];
+  const aRamsPlayer = aCause === 'opp' && aNew[0] === state.player.cell[0] && aNew[1] === state.player.cell[1];
+  if (pRamsAi && aCause === null) {
+    aCause = 'opp';
+    aCrashCell = [state.ai.cell[0], state.ai.cell[1]];
+  }
+  if (aRamsPlayer && pCause === null) {
+    pCause = 'opp';
+    pCrashCell = [state.player.cell[0], state.player.cell[1]];
+  }
   const pCrash = pCause !== null;
   const aCrash = aCause !== null;
   if (!pCrash) {
@@ -744,7 +759,7 @@ function tick() {
     addTrailAt(state.player, pNew[0], pNew[1]);
   } else {
     state.player.alive = false;
-    state.player.crashCell = pNew;
+    state.player.crashCell = pCrashCell;
     state.player.crashCause = pCause;
   }
   if (!aCrash) {
@@ -752,7 +767,7 @@ function tick() {
     addTrailAt(state.ai, aNew[0], aNew[1]);
   } else {
     state.ai.alive = false;
-    state.ai.crashCell = aNew;
+    state.ai.crashCell = aCrashCell;
     state.ai.crashCause = aCause;
   }
   return [pCrash, aCrash];
