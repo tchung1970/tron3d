@@ -735,8 +735,10 @@ window.addEventListener('keydown', (e) => {
   }
   const k = (e.key || '').toLowerCase();
   if (k === 'escape') {
+    resetMatch();
+    state.phase = 'ready';
+    hideMessage();
     stopSound();
-    window.location.href = '/';
     return;
   }
   // Space is the one action key: start round, pause/resume, start next round,
