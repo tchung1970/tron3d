@@ -61,7 +61,3 @@ Steering is **relative** — `←`/`→` rotate the cycle 90° from its current 
 ## Deployment
 
 Any static host. Copy the contents of `web3d/` to `/<webroot>/tron3d/` behind your HTTP server. No build step required.
-
-## License
-
-Personal project. Tron is a trademark of The Walt Disney Company; this is fan code, not affiliated with Disney.
