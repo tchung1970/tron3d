@@ -38,3 +38,5 @@ Game engine invariants:
 ## Deployment
 
 Static hosting. Copy `web3d/` contents to `/<webroot>/tron3d/`. No build step.
+
+When making a change to `game.js` or `style.css`, bump the `?v=` query string in `index.html` so browsers don't serve a cached asset after redeploy (`index.html` itself is served with `Cache-Control: no-store` via meta tags, so it will always re-fetch and pick up the new query).
